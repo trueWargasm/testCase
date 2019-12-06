@@ -15,13 +15,13 @@ class NotificationService
 class EmailNotificator
 {
     public function sendEmail($email, $text)
-    { ... }
+    { /* ... */ }
 }
  
 class SmsNotificator
 {
     public function sendSms($phone, $text)
-    { ... }
+    { /* ... */ }
 }
 
 //Этот сервис сконфигурирован и отдан в клиентский код для выполнения рассылки
