@@ -4,7 +4,7 @@ interface Notification  {
 	/**
 	 * Notifications send 
 	 */
-	public function notify() : void;
+	public function notify(User $user ) : void;
 
 	/**
 	 * Register new notification service
@@ -32,32 +32,53 @@ interface MessageComposer {
 	 * Create message
 	 */
 	public function compose( string $message ) : bool;
-
-
+	/**
+	 * Get composed message
+	 */
 	public function getMessage() : string;
 }
 
+
 class NotificationService implements Notification
 {
-    
+    private $serviceList = [];
+    private $messageComposer;
 
-    public function notify(User $user, $text)
+    public function notify(User $user)
     {
-        $emailNotificator = new EmailNotificator();
-        $smsNotificator = new SmsNotificator();
-        $emailNotificator->sendEmail($user->email, $text);
-        $smsNotificator>sendSms($user->phone, $text);
+	foreach($this->serviceList as $service){
+	    $service->send($user, $this->messageComposer);
+	}
+    }
+
+    public function registerService(NotificationService $service){
+	if(!array_serach( $service, $this->serviceList )){
+	    $this->serviceList[] = $service;
+	} else { throw new NotificationServiceException("This service already registered");}
+    }
+    
+    public function registerMessage(MessageComposer $message){
+    	$this->messageComposer = $message;
     }
 }
 
-class EmailNotificator
+class EmailNotificator implements NotificationService
 {
+    public function send(User $user, MessageComposer $message) {
+    	$this->send($user->email, $message->getMessage());
+    }
+	
     public function sendEmail($email, $text)
     { /* ... */ }
 }
  
-class SmsNotificator
+class SmsNotificator implements NotificationService
 {
+
+    public function send(User $user, MessageComposer $message) {
+    	$this->sendSms($user->phone, $message->getMessage());
+    }
+
     public function sendSms($phone, $text)
     { /* ... */ }
 }
@@ -65,8 +86,15 @@ class SmsNotificator
 //Этот сервис сконфигурирован и отдан в клиентский код для выполнения рассылки
 // Инициализация и конфигурация сервиса
 $service = new NotificationService();
+$service->registerService( new EmailNotificator() );
+$service->registerService( new SmsNotificator() );
+
 // Клиентский код с доступом к готовому к работе объекту сервиса рассылки
-$text = 'Какой-то текст';
+$composer = new PlainTextComposer();
+$composer->compose('Какой-то текст');
+
+$service->registerMessage( $composer );
+
 foreach ($users as $user) {
-    $service->notify($user, $text);
+    $service->notify($user);
 }
