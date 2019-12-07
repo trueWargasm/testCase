@@ -1,8 +1,46 @@
 <?php 
 
+interface Notification  {
+	/**
+	 * Notifications send 
+	 */
+	public function notify() : void;
 
-class NotificationService
+	/**
+	 * Register new notification service
+	 */
+	public function registerService( NotificationService $service) : void;
+
+	/**
+	 * Register message composer
+	 */
+	public function registerMessage( MesageComposer $composer) : void;
+
+}
+
+interface NotificationService {
+
+	/**
+	 * Send notification using service 
+	 */
+	public function send() : bool;
+}
+
+interface MessageComposer {
+
+	/**
+	 * Create message
+	 */
+	public function compose( string $message ) : bool;
+
+
+	public function getMessage() : string;
+}
+
+class NotificationService implements Notification
 {
+    
+
     public function notify(User $user, $text)
     {
         $emailNotificator = new EmailNotificator();
